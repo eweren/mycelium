@@ -1,0 +1,17 @@
+node_modules
+.git
+.svelte-kit
+build
+dist
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+.DS_Store
+coverage
+.nyc_output
+.playwright
+storybook-static
+*.md
+!README.md
