@@ -495,7 +495,7 @@
 	}
 	.loading-text {
 		margin: 0;
-		color: var(--traek-loading-text, #888888);
+		color: var(--traek-loading-top, #888888);
 		font-size: 0.95rem;
 		letter-spacing: 0.02em;
 	}
@@ -530,7 +530,7 @@
 		flex: 1;
 		background: transparent;
 		border: none;
-		color: white;
+		color: var(--traek-input-text, #ffffff);
 		padding: 12px;
 		outline: none;
 		font-size: 16px;
@@ -645,7 +645,7 @@
 		backdrop-filter: blur(20px);
 		border: 1px solid #444444;
 		border-radius: 12px;
-		box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+		box-shadow: var(--traek-shadow-tool-panel);
 		display: flex;
 		flex-direction: column;
 		gap: 2px;

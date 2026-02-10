@@ -30,6 +30,7 @@
 		onNodesChanged,
 		onViewportChange,
 		showFps = false,
+		showStats = true,
 		initialOverlay,
 		// Optional slot to fully customize the bottom input UI
 		// while still delegating message creation to the canvas.
@@ -53,6 +54,7 @@
 		/** Called when viewport (scale/offset) changes. Use to persist for reload. */
 		onViewportChange?: (viewport: { scale: number; offset: { x: number; y: number } }) => void;
 		showFps?: boolean;
+		showStats?: boolean;
 		/** Optional Svelte 5 snippet rendered as the initial intro overlay. */
 		initialOverlay?: Snippet;
 		/**
@@ -750,8 +752,10 @@
 		class:grabbing={isDragging || draggingNodeId}
 		style:background-position="{offset.x}px {offset.y}px"
 		style:background-size="{config.gridStep * scale}px {config.gridStep * scale}px"
-		style:background-image="radial-gradient(circle, #333 {Math.max(0.1, scale).toFixed(1)}px,
-		transparent {Math.max(0.1, scale).toFixed(1)}px)"
+		style:background-image="radial-gradient(circle, var(--traek-canvas-dot, #333333) {Math.max(
+			0.1,
+			scale
+		).toFixed(1)}px, transparent {Math.max(0.1, scale).toFixed(1)}px)"
 		onkeydown={(e) => {
 			if (e.key === 'Escape') {
 				engine.activeNodeId = null;
@@ -943,13 +947,15 @@
 			{/if}
 		</div>
 
-		<div class="stats">
-			{#if showFps}
-				<span class="stats-fps">{fps} FPS</span>
-				<span class="stats-sep">|</span>
-			{/if}
-			{Math.round(scale * 100)}% | Context: {engine.contextPath().length} Nodes
-		</div>
+		{#if showStats}
+			<div class="stats">
+				{#if showFps}
+					<span class="stats-fps">{fps} FPS</span>
+					<span class="stats-sep">|</span>
+				{/if}
+				{Math.round(scale * 100)}% | Context: {engine.contextPath().length} Nodes
+			</div>
+		{/if}
 	</div>
 {/if}
 

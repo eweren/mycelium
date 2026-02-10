@@ -38,8 +38,18 @@
 		let ctx = canvas.getContext('2d');
 		let rafId = 0;
 
+		function getThemeColors() {
+			const style = getComputedStyle(document.documentElement);
+			return {
+				dot: style.getPropertyValue('--traek-gravity-dot').trim() || '#262626',
+				tendril: style.getPropertyValue('--traek-gravity-tendril').trim() || 'rgba(148, 163, 184, 0.35)',
+				tendrilBranch: style.getPropertyValue('--traek-gravity-tendril-branch').trim() || 'rgba(148, 163, 184, 0.22)'
+			};
+		}
+
 		function draw() {
 			if (!ctx) return;
+			const colors = getThemeColors();
 			const w = window.innerWidth;
 			const h = window.innerHeight;
 			const scrollX = window.scrollX || 0;
@@ -73,7 +83,7 @@
 					// Always draw a subtle grid dot for orientation
 					ctx.beginPath();
 					ctx.arc(x, y, DOT_RADIUS, 0, Math.PI * 2);
-					ctx.fillStyle = '#262626';
+					ctx.fillStyle = colors.dot;
 					ctx.fill();
 
 					// Within a local radius, draw short, soft tendrils that orient toward the cursor
@@ -102,7 +112,7 @@
 						ctx.beginPath();
 						ctx.moveTo(x, y);
 						ctx.lineTo(mainEndX, mainEndY);
-						ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+						ctx.strokeStyle = colors.tendril;
 						ctx.lineWidth = 1;
 						ctx.stroke();
 
@@ -120,7 +130,7 @@
 							ctx.beginPath();
 							ctx.moveTo(branchBaseX, branchBaseY);
 							ctx.lineTo(bx, by);
-							ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+							ctx.strokeStyle = colors.tendrilBranch;
 							ctx.lineWidth = 0.8;
 							ctx.stroke();
 						}
@@ -154,7 +164,7 @@
 	.gravity-dots-bg {
 		position: fixed;
 		inset: 0;
-		background: #0b0b0b;
+		background: var(--traek-bg-body);
 		z-index: -1;
 	}
 	.gravity-dots-bg__canvas {

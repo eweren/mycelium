@@ -1,20 +1,18 @@
 <script lang="ts">
 	import '../app.css';
-	import GravityDotsBackground from '../lib/GravityDotsBackground.svelte';
+	import ThemeToggle from '$lib/ThemeToggle.svelte';
 </script>
 
 <svelte:head>
-	<title>Træk Demo</title>
-	<meta name="description" content="Træk Demo" />
-	<meta name="keywords" content="Træk, Demo, Svelte, SvelteKit" />
+	<title>Træk - spatial conversation engine</title>
+	<meta
+		name="description"
+		content="Træk is a spatial conversation engine for building non-linear AI chat UIs in Svelte."
+	/>
+	<meta name="keywords" content="Træk, Svelte, SvelteKit, AI, Chat, Conversation, Engine" />
 	<meta name="author" content="Nico Hülscher" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta name="robots" content="index, follow" />
-	<meta name="googlebot" content="index, follow" />
-	<meta name="bingbot" content="index, follow" />
-	<meta name="yandexbot" content="index, follow" />
-	<meta name="duckduckbot" content="index, follow" />
-	<meta name="baidu" content="index, follow" />
 </svelte:head>
 
 <slot />
+<ThemeToggle />

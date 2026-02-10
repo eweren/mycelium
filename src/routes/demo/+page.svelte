@@ -108,7 +108,7 @@
 		line-height: 1.55;
 		color: var(--traek-demo-text-muted-2, #d4d4d8);
 		backdrop-filter: blur(8px);
-		box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+		box-shadow: var(--traek-shadow-demo-info);
 	}
 	.info-box p {
 		margin: 0 0 0.5rem 0;
@@ -158,7 +158,7 @@
 		border: 1px solid var(--traek-demo-border-soft, rgba(255, 255, 255, 0.1));
 		border-radius: 0.5rem;
 		backdrop-filter: blur(6px);
-		box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+		box-shadow: var(--traek-shadow-demo-list-item);
 		transition:
 			background 0.15s,
 			border-color 0.15s,
@@ -167,7 +167,7 @@
 	li button:hover {
 		background: var(--traek-demo-list-bg-hover, rgba(39, 39, 42, 0.9));
 		border-color: var(--traek-demo-border-hover, rgba(255, 255, 255, 0.16));
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+		box-shadow: var(--traek-shadow-demo-list-item-hover);
 	}
 	.title {
 		font-weight: 600;

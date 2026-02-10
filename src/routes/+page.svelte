@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { markdownToHtml } from '../lib/utils.ts';
-	import 'highlight.js/styles/github-dark.css';
+	import { theme } from '$lib/theme';
+	import highlightDarkUrl from 'highlight.js/styles/github-dark.css?url';
+	import highlightLightUrl from 'highlight.js/styles/github.css?url';
 
 	import { DEFAULT_TRACK_ENGINE_CONFIG, TraekCanvas, DefaultLoadingOverlay } from '$lib';
 	import { createHeroEngine } from '$lib/heroDemoEngine';
 	import GravityDotsBackground from '$lib/GravityDotsBackground.svelte';
 
-	// Read‑only hero demo: pre‑seeded engine, no user interaction
+	// Read-only hero demo: pre-seeded engine, no user interaction
 	const heroEngine = createHeroEngine(DEFAULT_TRACK_ENGINE_CONFIG);
 
 	const renderedContent = $derived(
@@ -48,6 +50,10 @@ npm install traek
 	);
 </script>
 
+<svelte:head>
+	<link rel="stylesheet" href={$theme === 'dark' ? highlightDarkUrl : highlightLightUrl} />
+</svelte:head>
+
 <main class="landing">
 	<section class="hero">
 		<div class="hero-copy">
@@ -66,7 +72,7 @@ npm install traek
 					<span class="dot"></span> Navigate discussions like a map, not a log
 				</div>
 				<div class="hero-pill">
-					<span class="dot"></span> Streaming‑first & markdown aware
+					<span class="dot"></span> Streaming-first & markdown aware
 				</div>
 			</div>
 
@@ -79,10 +85,10 @@ npm install traek
 		</div>
 
 		<div class="hero-demo">
-			<div class="hero-demo-label">Live topology preview (read‑only)</div>
+			<div class="hero-demo-label">Live topology preview (read-only)</div>
 			<div class="demo-frame">
 				{#if heroEngine}
-					<TraekCanvas engine={heroEngine} config={DEFAULT_TRACK_ENGINE_CONFIG} showFps={true}>
+					<TraekCanvas engine={heroEngine} config={DEFAULT_TRACK_ENGINE_CONFIG} showStats={false}>
 						{#snippet initialOverlay()}
 							<DefaultLoadingOverlay />
 						{/snippet}
@@ -99,9 +105,9 @@ npm install traek
 			<div class="section-card">
 				<h2>The problem with classic chat UIs</h2>
 				<p>
-					Most AI products still present long‑form reasoning as a single scrolling thread. That
+					Most AI products still present long-form reasoning as a single scrolling thread. That
 					works for quick answers — but breaks down as soon as conversations become exploratory,
-					multi‑directional, iterative, agent‑driven, and reasoning‑heavy.
+					multi-directional, iterative, agent-driven, and reasoning-heavy.
 				</p>
 				<p>
 					Context gets buried, alternative paths are lost, and it becomes hard to see how a decision
@@ -117,7 +123,7 @@ npm install traek
 				<p class="metric-label">possible paths</p>
 				<p class="metric-copy">
 					træk treats conversations as a navigable graph instead of a frozen log — so branching
-					exploration is the default, not an edge‑case.
+					exploration is the default, not an edge-case.
 				</p>
 			</div>
 		</div>
@@ -149,7 +155,7 @@ npm install traek
 						path.
 					</li>
 					<li>
-						<strong>Streaming‑first</strong> — render tokens in place while keeping the topology intact.
+						<strong>Streaming-first</strong> — render tokens in place while keeping the topology intact.
 					</li>
 				</ul>
 			</div>
@@ -188,14 +194,14 @@ npm install traek
 						<li>agent interfaces</li>
 						<li>prompt exploration tools</li>
 						<li>research assistants</li>
-						<li>reasoning‑heavy workflows</li>
-						<li>multi‑path generation UIs</li>
+						<li>reasoning-heavy workflows</li>
+						<li>multi-path generation UIs</li>
 					</ul>
 				</div>
 				<div class="stack-item stack-item--light">
-					<h3>Drop‑in integration</h3>
+					<h3>Drop-in integration</h3>
 					<p>
-						Use TraekCanvas as a ready‑made UI, or wire TraekEngine into your own components and
+						Use TraekCanvas as a ready-made UI, or wire TraekEngine into your own components and
 						render messages your way.
 					</p>
 				</div>
@@ -211,7 +217,7 @@ npm install traek
 				spatial AI conversations feel.
 			</p>
 			<div class="hero-cta-row">
-				<a href="/demo" class="btn primary">Explore demos</a>
+				<a href="/demo" class="btn primary">Open interactive demo</a>
 				<a href="https://github.com/eweren/traek" class="btn tertiary">View source</a>
 			</div>
 		</div>
@@ -290,7 +296,7 @@ npm install traek
 		height: 6px;
 		border-radius: 999px;
 		background: var(--traek-accent-cyan, #00d8ff);
-		box-shadow: 0 0 14px rgba(0, 216, 255, 0.6);
+		box-shadow: var(--traek-shadow-dot-glow);
 	}
 
 	.hero-cta-row {
@@ -326,12 +332,12 @@ npm install traek
 			var(--traek-accent-lime, #00ffa3)
 		);
 		color: var(--traek-bg-body, #000000);
-		box-shadow: 0 12px 32px rgba(0, 216, 255, 0.28);
+		box-shadow: var(--traek-shadow-btn-primary);
 	}
 
 	.btn.primary:hover {
 		transform: translateY(-1px);
-		box-shadow: 0 16px 40px rgba(0, 216, 255, 0.38);
+		box-shadow: var(--traek-shadow-btn-primary-hover);
 	}
 
 	.btn.secondary {
@@ -376,9 +382,7 @@ npm install traek
 			var(--traek-demo-frame-bg-bottom, #000000) 100%
 		);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		box-shadow:
-			0 22px 60px rgba(0, 0, 0, 0.9),
-			0 0 0 1px rgba(0, 0, 0, 0.6);
+		box-shadow: var(--traek-shadow-demo-frame);
 	}
 
 	.demo-frame :global(.viewport) {
@@ -409,7 +413,11 @@ npm install traek
 		content: '';
 		position: absolute;
 		inset: -10%;
-		background: radial-gradient(circle at top right, rgba(0, 216, 255, 0.08), transparent 60%);
+		background: radial-gradient(
+			circle at top right,
+			var(--traek-section-alt-glow),
+			transparent 60%
+		);
 		opacity: 0.9;
 		z-index: -1;
 	}
@@ -464,18 +472,22 @@ npm install traek
 			var(--traek-card-bg-dark-2, #101010)
 		);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		box-shadow: 0 18px 45px rgba(0, 0, 0, 0.75);
+		box-shadow: var(--traek-shadow-card);
 		padding: 1.4rem 1.6rem;
 	}
 
 	.section-metric {
 		align-self: stretch;
 		border-radius: 18px;
-		background: radial-gradient(circle at top, rgba(0, 216, 255, 0.12), rgba(6, 6, 6, 0.98));
-		border: 1px solid rgba(0, 216, 255, 0.3);
+		background: radial-gradient(
+			circle at top,
+			var(--traek-metric-accent),
+			var(--traek-metric-bg-end)
+		);
+		border: 1px solid var(--traek-metric-accent-border);
 		box-shadow:
-			0 18px 45px rgba(0, 0, 0, 0.9),
-			0 0 40px rgba(0, 216, 255, 0.18);
+			var(--traek-shadow-metric),
+			0 0 40px var(--traek-metric-glow);
 		padding: 1.5rem 1.6rem;
 		display: flex;
 		flex-direction: column;
@@ -511,15 +523,6 @@ npm install traek
 		list-style: none;
 	}
 
-	.pill-list li {
-		font-size: 0.8rem;
-		padding: 0.25rem 0.7rem;
-		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.04);
-		border: 1px solid rgba(255, 255, 255, 0.08);
-		color: var(--traek-landing-text-muted-7, #e4e4e4);
-	}
-
 	.two-column {
 		display: grid;
 		grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
@@ -535,7 +538,7 @@ npm install traek
 			var(--traek-card-bg-dark-4, #111111)
 		);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		box-shadow: 0 18px 45px rgba(0, 0, 0, 0.8);
+		box-shadow: var(--traek-shadow-code-card);
 		padding: 1rem 1.2rem 1.1rem;
 		font-size: 0.8rem;
 	}
@@ -553,37 +556,28 @@ npm install traek
 
 	.stack-item {
 		border-radius: 16px;
-		background: rgba(17, 17, 17, 0.95);
+		background: var(--traek-card-bg-dark-1);
 		border: 1px solid rgba(255, 255, 255, 0.06);
+		box-shadow: var(--traek-shadow-stack-item);
 		padding: 1rem 1.1rem;
 	}
 
 	.stack-item--light {
-		background: radial-gradient(circle at top left, rgba(0, 216, 255, 0.08), #050505);
-		border-color: rgba(0, 216, 255, 0.28);
+		background: radial-gradient(
+			circle at top left,
+			var(--traek-stack-accent),
+			var(--traek-stack-bg-end)
+		);
+		border-color: var(--traek-stack-accent-border);
 	}
 
 	.code-card-label {
 		font-size: 0.75rem;
 		text-transform: uppercase;
 		letter-spacing: 0.16em;
-		color: #9f9f9f;
+		color: var(--traek-code-label);
 		margin-bottom: 0.4rem;
 	}
-
-	.code-card pre {
-		margin: 0;
-		overflow-x: auto;
-		font-family: Menlo, Monaco, Consolas, 'SF Mono', monospace;
-		font-size: 0.8rem;
-		line-height: 1.45;
-		color: var(--traek-landing-text-strong, #f6f6f6);
-	}
-
-	.code-card code {
-		white-space: pre;
-	}
-
 	.final {
 		padding-top: 0.5rem;
 	}
@@ -600,7 +594,7 @@ npm install traek
 
 	.final-inner p {
 		margin-bottom: 1.4rem;
-		color: #cfcfcf;
+		color: var(--traek-final-muted);
 	}
 
 	@media (max-width: 900px) {
@@ -612,7 +606,9 @@ npm install traek
 			height: 360px;
 		}
 
-		.two-column {
+		.two-column,
+		.stack-grid,
+		.section-split {
 			grid-template-columns: minmax(0, 1fr);
 		}
 	}
