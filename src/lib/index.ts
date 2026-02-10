@@ -12,4 +12,6 @@ export {
   type Node,
   type NodeStatus,
   type AddNodePayload,
+  type TraekNodeComponentProps,
+  type NodeComponentMap,
 } from './TraekEngine.svelte';

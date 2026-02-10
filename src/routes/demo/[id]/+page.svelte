@@ -6,7 +6,8 @@
 		TraekEngine,
 		DEFAULT_TRACK_ENGINE_CONFIG,
 		type MessageNode,
-		type AddNodePayload
+		type AddNodePayload,
+		type NodeComponentMap
 	} from '$lib';
 	import ExampleCustomComponent from '$lib/ExampleCustomComponent.svelte';
 	import ImageDemoNode from '$lib/ImageDemoNode.svelte';
@@ -19,6 +20,12 @@
 	} from '$lib/demo-persistence';
 
 	const id = $derived(page.params.id);
+
+	/** Type-safe map: only 'debugNode' | 'image' keys, values must accept TraekNodeComponentProps. */
+	const componentMap: NodeComponentMap<'debugNode' | 'image'> = {
+		debugNode: ExampleCustomComponent,
+		image: ImageDemoNode
+	};
 
 	let engine = $state<TraekEngine | null>(null);
 	let conv = $state<SavedConversation | null>(null);
@@ -64,15 +71,6 @@
 			const e = new TraekEngine(DEFAULT_TRACK_ENGINE_CONFIG);
 			if (data.nodes.length > 0) {
 				e.addNodes(data.nodes);
-
-				// Re-attach custom UI components for special node types loaded from persistence.
-				for (const n of e.nodes) {
-					// Image demo nodes: render with ImageDemoNode component.
-					if (n.type === 'image') {
-						(n as any).component = ImageDemoNode;
-						(n as any).props = {};
-					}
-				}
 			}
 			// Restore last focused node (reply context)
 			if (data.activeNodeId != null) {
@@ -333,6 +331,7 @@
 			<TraekCanvas
 				{engine}
 				config={DEFAULT_TRACK_ENGINE_CONFIG}
+				{componentMap}
 				initialScale={conv?.viewport?.scale}
 				initialOffset={conv?.viewport
 					? { x: conv.viewport.offsetX, y: conv.viewport.offsetY }

@@ -503,6 +503,8 @@
 			flex: 1;
 			min-width: 0;
 			min-height: 0;
+			user-select: text;
+			cursor: text;
 		}
 
 		/* Child node cards are positioned by this wrapper, not by themselves */

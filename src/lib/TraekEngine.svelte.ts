@@ -30,6 +30,21 @@ export type CustomTraekNode = Node & {
   props?: Record<string, unknown>;
 };
 
+/** Props every custom node component receives from the canvas. Use this to type your component's $props(). */
+export type TraekNodeComponentProps = {
+  node: Node;
+  engine: TraekEngine;
+  isActive: boolean;
+};
+
+/**
+ * Map node.type (e.g. 'debugNode', 'image') to Svelte component for custom nodes.
+ * Use with a union of your custom types for type-safe keys: NodeComponentMap<'debugNode' | 'image'>.
+ */
+export type NodeComponentMap<T extends string = string> = Partial<
+  Record<T, SvelteComponent<TraekNodeComponentProps & Record<string, unknown>>>
+>;
+
 export interface MessageNode extends Node {
   content: string;
 }

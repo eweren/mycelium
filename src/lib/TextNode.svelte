@@ -90,6 +90,7 @@
 			overflow-y: auto;
 			padding: 16px;
 			position: relative;
+			user-select: text;
 		}
 
 		.text-content {
@@ -97,6 +98,7 @@
 			line-height: 1.6;
 			color: var(--traek-textnode-text, #dddddd);
 			word-break: break-word;
+			user-select: text;
 		}
 
 		.markdown-body :global(p) {

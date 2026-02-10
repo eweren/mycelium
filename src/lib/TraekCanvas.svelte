@@ -7,7 +7,8 @@
 		DEFAULT_TRACK_ENGINE_CONFIG,
 		type MessageNode,
 		type CustomTraekNode,
-		type Node
+		type Node,
+		type NodeComponentMap
 	} from './TraekEngine.svelte';
 	import TraekNodeWrapper from './TraekNodeWrapper.svelte';
 	import TextNode from './TextNode.svelte';
@@ -23,6 +24,7 @@
 	let {
 		engine: engineProp,
 		config: configProp,
+		componentMap = {},
 		initialPlacementPadding = { left: 0, top: 0 },
 		initialScale,
 		initialOffset,
@@ -38,6 +40,8 @@
 	}: {
 		engine?: TraekEngine | null;
 		config?: Partial<TraekEngineConfig>;
+		/** Map node.type -> component for custom nodes. Type as NodeComponentMap<'debugNode'|'image'> for key safety. */
+		componentMap?: NodeComponentMap;
 		initialPlacementPadding?: { left: number; top: number };
 		/** Restore saved zoom (e.g. after reload). */
 		initialScale?: number;
@@ -179,6 +183,13 @@
 		}
 	});
 
+	// Clear text selection when the active node changes (e.g. user clicked another node)
+	$effect(() => {
+		if (typeof window === 'undefined' || !engine) return;
+		engine.activeNodeId;
+		window.getSelection()?.removeAllRanges();
+	});
+
 	$effect(() => {
 		const el = viewportEl;
 		if (!el || !engine) return;
@@ -222,6 +233,8 @@
 			if (nodeEl) {
 				const id = nodeEl.getAttribute('data-node-id');
 				if (id && engine.activeNodeId === id) {
+					// Allow text selection / don't start node drag when touching node content
+					if ((e.target as HTMLElement).closest('.message-node-content, .content-area')) return;
 					const node = engine.nodes.find((n: Node) => n.id === id);
 					if (node) {
 						draggingNodeId = id;
@@ -508,6 +521,8 @@
 		if (nodeEl) {
 			const id = nodeEl.getAttribute('data-node-id');
 			if (id && engine && engine.activeNodeId === id) {
+				// Allow text selection inside node content – don't start drag or preventDefault
+				if ((e.target as HTMLElement).closest('.message-node-content, .content-area')) return;
 				const node = engine.nodes.find((n: Node) => n.id === id);
 				if (node) {
 					draggingNodeId = id;
@@ -871,10 +886,10 @@
 						{viewportResizeVersion}
 					/>
 				{:else}
-					<!-- Custom UI component provided by the consumer app, wrapped in TraekNodeWrapper -->
+					<!-- Custom UI component: from node.component (live) or componentMap[node.type] (e.g. after hydration) -->
 					{@const uiData = node as CustomTraekNode}
-					{#if uiData?.component}
-						{@const Component = uiData.component}
+					{@const Component = uiData?.component ?? componentMap[node.type]}
+					{#if Component}
 						<TraekNodeWrapper
 							{node}
 							{isActive}
@@ -884,10 +899,10 @@
 							nodeWidth={config.nodeWidth}
 							{viewportResizeVersion}
 						>
-							<Component {node} {engine} {isActive} {...uiData.props} />
+							<Component {node} {engine} {isActive} {...uiData?.props ?? {}} />
 						</TraekNodeWrapper>
 					{:else if node.type !== 'thought'}
-						<!-- Fallback if ui-component node has no component attached -->
+						<!-- Fallback if no component on node and not in componentMap -->
 						<TraekNodeWrapper
 							{node}
 							{isActive}
