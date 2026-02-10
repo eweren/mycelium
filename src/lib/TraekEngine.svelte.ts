@@ -91,7 +91,7 @@ export const DEFAULT_TRACK_ENGINE_CONFIG: TraekEngineConfig = {
   streamIntervalMs: 30,
   rootNodeOffsetX: -175,
   rootNodeOffsetY: -50,
-  layoutGapX: 375,
+  layoutGapX: 35,
   layoutGapY: 50,
   heightChangeThreshold: 5,
   gridStep: 20,
