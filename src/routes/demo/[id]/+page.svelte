@@ -18,6 +18,7 @@
 		type SavedConversation,
 		type SavedViewport
 	} from '$lib/demo-persistence';
+	import { track } from '$lib/umami';
 
 	const id = $derived(page.params.id);
 
@@ -148,6 +149,11 @@
 		if (!eng || !conv || !id) return;
 
 		const selected = Array.isArray(action) ? (action as string[]) : action ? [action] : [];
+		track('demo-send-message', {
+			toolCount: selected.length,
+			tools: selected.length ? selected.join(',') : 'none',
+			hasReplyContext: !!userNode?.id
+		});
 
 		// --- Demo-only actions based on selected tools ---
 		if (selected.includes('debug')) {
@@ -326,7 +332,7 @@
 
 {#if engine}
 	<div class="chat-layout">
-		<a href="/demo" class="back">← Back to list</a>
+		<a href="/demo" class="back" data-umami-event="demo-back-to-list">← Back to list</a>
 		<div class="canvas-wrap">
 			<TraekCanvas
 				{engine}
@@ -371,6 +377,7 @@
 								class="tools-trigger"
 								aria-label="Choose tools"
 								aria-expanded={toolsOverlayOpen}
+								data-umami-event="demo-tools-open"
 								onclick={() => (toolsOverlayOpen = !toolsOverlayOpen)}
 							>
 								<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -395,6 +402,8 @@
 											type="button"
 											class="tool-option"
 											class:selected={selectedActions.includes(tool.id)}
+											data-umami-event="demo-tool-select"
+											data-umami-event-tool={tool.id}
 											onclick={() => {
 												selectedActions = selectedActions.includes(tool.id)
 													? selectedActions.filter((a) => a !== tool.id)

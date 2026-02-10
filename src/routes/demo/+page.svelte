@@ -7,6 +7,7 @@
 		createConversation,
 		type ConversationMeta
 	} from '$lib/demo-persistence.js';
+	import { track } from '$lib/umami';
 
 	let conversations = $state<ConversationMeta[]>([]);
 
@@ -15,11 +16,13 @@
 	});
 
 	function newChat() {
+		track('demo-new-chat');
 		const conv = createConversation();
 		goto(`/demo/${conv.id}`);
 	}
 
 	function open(id: string) {
+		track('demo-open-conversation', { conversationId: id });
 		goto(`/demo/${id}`);
 	}
 </script>
@@ -61,7 +64,7 @@
 			{/each}
 		</ul>
 		<p class="home">
-			<a href="/">← Home</a>
+			<a href="/" data-umami-event="demo-nav-home">← Home</a>
 		</p>
 	</div>
 </div>
