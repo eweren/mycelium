@@ -12,6 +12,10 @@
 	} from './TraekEngine.svelte';
 	import TraekNodeWrapper from './TraekNodeWrapper.svelte';
 	import TextNode from './TextNode.svelte';
+	import type { ActionDefinition, ResolveActions } from './actions/types.js';
+	import { ActionResolver } from './actions/ActionResolver.svelte.js';
+	import ActionBadges from './actions/ActionBadges.svelte';
+	import SlashCommandDropdown from './actions/SlashCommandDropdown.svelte';
 
 	type InputActionsContext = {
 		engine: TraekEngine;
@@ -19,6 +23,7 @@
 		userInput: string;
 		setUserInput: (value: string) => void;
 		sendMessage: (options?: SendMessageOptions) => void;
+		resolver: ActionResolver | null;
 	};
 
 	let {
@@ -36,7 +41,9 @@
 		initialOverlay,
 		// Optional slot to fully customize the bottom input UI
 		// while still delegating message creation to the canvas.
-		inputActions
+		inputActions,
+		actions: actionsProp,
+		resolveActions: resolveActionsProp
 	}: {
 		engine?: TraekEngine | null;
 		config?: Partial<TraekEngineConfig>;
@@ -64,9 +71,13 @@
 		/**
 		 * Optional Svelte 5 snippet that replaces the default bottom input form.
 		 * It receives a single context argument:
-		 * { engine, activeNode, userInput, setUserInput, sendMessage }
+		 * { engine, activeNode, userInput, setUserInput, sendMessage, resolver }
 		 */
 		inputActions?: Snippet<[InputActionsContext]>;
+		/** Action definitions for the smart action suggestion system. */
+		actions?: ActionDefinition[];
+		/** Async callback for stage-2 semantic action resolution (e.g. LLM). */
+		resolveActions?: ResolveActions;
 	} = $props();
 
 	const config = $derived({
@@ -137,6 +148,26 @@
 
 	// Input State
 	let userInput = $state('');
+
+	// Action resolver lifecycle
+	let resolver = $state<ActionResolver | null>(null);
+	$effect(() => {
+		if (actionsProp && actionsProp.length > 0) {
+			const r = new ActionResolver(actionsProp, resolveActionsProp);
+			resolver = r;
+			return () => r.destroy();
+		} else {
+			resolver = null;
+		}
+	});
+
+	// Forward input changes to the resolver
+	$effect(() => {
+		const input = userInput;
+		resolver?.onInputChange(input);
+	});
+
+	let slashDropdownRef: SlashCommandDropdown | null = $state(null);
 
 	type SendMessageOptions = {
 		/** Identifier for the selected tool / mode, e.g. "chat" | "image" | "audio". */
@@ -576,6 +607,18 @@
 	function sendMessage(messageOptions?: SendMessageOptions) {
 		if (!userInput.trim()) return;
 
+		// Merge resolver-selected actions into the options
+		const resolverActions = resolver?.selectedIds ?? [];
+		const explicitActions = messageOptions?.actions ?? [];
+		const explicitAction = messageOptions?.action;
+		const allActions = [
+			...new Set([
+				...resolverActions,
+				...explicitActions,
+				...(explicitAction ? [explicitAction] : [])
+			])
+		];
+
 		const parentNode = engine.nodes.find((n: Node) => n.id === engine.activeNodeId);
 		let position: { x?: number; y?: number } = {};
 
@@ -593,24 +636,14 @@
 
 		const userNode = engine.addNode(userInput, 'user', {
 			...position,
-			data:
-				messageOptions?.data ??
-				// Store actions on the node so consumers can
-				// branch logic based on the requested tools.
-				(messageOptions?.actions && messageOptions.actions.length > 0
-					? { actions: messageOptions.actions }
-					: messageOptions?.action
-						? { action: messageOptions.action }
-						: undefined)
+			data: messageOptions?.data ?? (allActions.length > 0 ? { actions: allActions } : undefined)
 		});
 		const lastInput = userInput;
 		userInput = '';
+		resolver?.reset();
 		centerOnNode(userNode);
 
-		const actionArg =
-			messageOptions?.actions && messageOptions.actions.length > 0
-				? messageOptions.actions
-				: messageOptions?.action;
+		const actionArg = allActions.length > 0 ? allActions : undefined;
 
 		onSendMessage?.(lastInput, userNode, actionArg);
 	}
@@ -935,7 +968,8 @@
 					activeNode: engine.nodes.find((n) => n.id === engine.activeNodeId) ?? null,
 					userInput,
 					setUserInput: (value: string) => (userInput = value),
-					sendMessage
+					sendMessage,
+					resolver
 				})}
 			{:else}
 				<div class="context-info">
@@ -945,6 +979,14 @@
 						<span class="dot gray"></span> New thread in center
 					{/if}
 				</div>
+				{#if resolver && actionsProp}
+					<ActionBadges
+						actions={actionsProp}
+						suggestedIds={resolver.suggestedIds}
+						selectedIds={resolver.selectedIds}
+						onToggle={(id) => resolver?.toggleAction(id)}
+					/>
+				{/if}
 				<form
 					onsubmit={(e) => {
 						e.preventDefault();
@@ -952,7 +994,31 @@
 					}}
 					class="input-wrapper"
 				>
-					<input bind:value={userInput} placeholder="Ask the expert..." spellcheck="false" />
+					{#if resolver && actionsProp && resolver.slashFilter !== null}
+						<SlashCommandDropdown
+							bind:this={slashDropdownRef}
+							actions={actionsProp}
+							filter={resolver.slashFilter}
+							onSelect={(id) => {
+								if (resolver) {
+									userInput = resolver.selectSlashCommand(id, userInput);
+								}
+							}}
+							onDismiss={() => {
+								if (resolver) resolver.slashFilter = null;
+							}}
+						/>
+					{/if}
+					<input
+						bind:value={userInput}
+						placeholder="Ask the expert..."
+						spellcheck="false"
+						onkeydown={(e) => {
+							if (resolver?.slashFilter !== null && slashDropdownRef) {
+								slashDropdownRef.handleKeydown(e);
+							}
+						}}
+					/>
 					<button type="submit" disabled={!userInput.trim()} aria-label="Send message">
 						<svg viewBox="0 0 24 24" width="18" height="18"
 							><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg

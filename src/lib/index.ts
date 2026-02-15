@@ -5,13 +5,19 @@ export { default as DefaultLoadingOverlay } from './DefaultLoadingOverlay.svelte
 
 // Engine and config
 export {
-  TraekEngine,
-  DEFAULT_TRACK_ENGINE_CONFIG,
-  type TraekEngineConfig,
-  type MessageNode,
-  type Node,
-  type NodeStatus,
-  type AddNodePayload,
-  type TraekNodeComponentProps,
-  type NodeComponentMap,
+	TraekEngine,
+	DEFAULT_TRACK_ENGINE_CONFIG,
+	type TraekEngineConfig,
+	type MessageNode,
+	type Node,
+	type NodeStatus,
+	type AddNodePayload,
+	type TraekNodeComponentProps,
+	type NodeComponentMap
 } from './TraekEngine.svelte';
+
+// Actions
+export { default as ActionBadges } from './actions/ActionBadges.svelte';
+export { default as SlashCommandDropdown } from './actions/SlashCommandDropdown.svelte';
+export { ActionResolver } from './actions/ActionResolver.svelte';
+export type { ActionDefinition, ResolveActions } from './actions/types.js';
