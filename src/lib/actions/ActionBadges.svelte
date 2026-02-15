@@ -12,20 +12,19 @@
 		selectedIds: string[];
 		onToggle: (id: string) => void;
 	} = $props();
-
-	/** Show badges for any action that is suggested OR selected. */
-	const visibleActions = $derived(
-		actions.filter((a) => suggestedIds.includes(a.id) || selectedIds.includes(a.id))
-	);
 </script>
 
-{#if visibleActions.length > 0}
+{#if actions.length > 0}
 	<div class="action-badges">
-		{#each visibleActions as action (action.id)}
+		{#each actions as action (action.id)}
+			{@const isSuggested = suggestedIds.includes(action.id)}
+			{@const isSelected = selectedIds.includes(action.id)}
 			<button
 				type="button"
 				class="action-badge"
-				class:active={selectedIds.includes(action.id)}
+				class:suggested={isSuggested && !isSelected}
+				class:active={isSelected}
+				class:inactive={!isSuggested && !isSelected}
 				title={action.description}
 				onclick={() => onToggle(action.id)}
 			>
@@ -58,7 +57,16 @@
 		transition:
 			background 0.15s,
 			border-color 0.15s,
-			color 0.15s;
+			color 0.15s,
+			opacity 0.15s;
+	}
+
+	.action-badge.inactive {
+		opacity: 0.4;
+	}
+
+	.action-badge.inactive:hover {
+		opacity: 0.7;
 	}
 
 	.action-badge:hover {
@@ -66,7 +74,13 @@
 		border-color: var(--traek-badge-border-hover, #666666);
 	}
 
+	.action-badge.suggested {
+		opacity: 1;
+		animation: badge-pulse 1.5s ease-in-out infinite;
+	}
+
 	.action-badge.active {
+		opacity: 1;
 		background: var(--traek-badge-bg-active, rgba(0, 216, 255, 0.15));
 		border-color: var(--traek-badge-border-active, #00d8ff);
 		color: var(--traek-badge-text-active, #00d8ff);
@@ -74,5 +88,24 @@
 
 	.action-badge-icon {
 		font-size: 1.1em;
+	}
+
+	@keyframes badge-pulse {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 rgba(0, 216, 255, 0);
+		}
+		50% {
+			box-shadow: 0 0 6px 2px rgba(0, 216, 255, 0.3);
+		}
+	}
+
+	/* Mobile touch target improvements */
+	@media (max-width: 768px) {
+		.action-badge {
+			padding: 8px 12px;
+			min-height: 44px;
+			min-width: 44px;
+		}
 	}
 </style>

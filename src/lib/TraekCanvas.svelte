@@ -921,6 +921,24 @@
 				</g>
 			</svg>
 
+			{#if engine.nodes.length === 0}
+				<div class="empty-state">
+					<div class="empty-state-content">
+						<div class="empty-state-title">Start a conversation</div>
+						<div class="empty-state-subtitle">Type a message below to begin</div>
+						<svg class="empty-state-arrow" width="24" height="48" viewBox="0 0 24 48" fill="none">
+							<path
+								d="M12 0L12 42M12 42L6 36M12 42L18 36"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+					</div>
+				</div>
+			{/if}
+
 			{#each engine.nodes as node (node.id)}
 				{@const isActive = engine.activeNodeId === node.id}
 				{@const typeDef = registry?.get(node.type)}
@@ -1045,16 +1063,27 @@
 							}}
 						/>
 					{/if}
-					<input
+					<textarea
 						bind:value={userInput}
 						placeholder="Ask the expert..."
 						spellcheck="false"
+						rows="1"
+						oninput={(e) => {
+							const target = e.currentTarget;
+							target.style.height = 'auto';
+							target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+						}}
 						onkeydown={(e) => {
 							if (resolver?.slashFilter !== null && slashDropdownRef) {
 								slashDropdownRef.handleKeydown(e);
+								return;
+							}
+							if (e.key === 'Enter' && !e.shiftKey) {
+								e.preventDefault();
+								sendMessage();
 							}
 						}}
-					/>
+					></textarea>
 					<button type="submit" disabled={!userInput.trim()} aria-label="Send message">
 						<svg viewBox="0 0 24 24" width="18" height="18"
 							><path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg
@@ -1191,7 +1220,7 @@
 			box-shadow: 0 20px 40px var(--traek-input-shadow, rgba(0, 0, 0, 0.4));
 		}
 
-		input {
+		textarea {
 			flex: 1;
 			background: transparent;
 			border: none;
@@ -1199,6 +1228,12 @@
 			padding: 12px;
 			outline: none;
 			font-size: 16px;
+			resize: none;
+			overflow-y: auto;
+			max-height: 120px;
+			min-height: 38px;
+			font-family: inherit;
+			line-height: 1.4;
 		}
 
 		button {
@@ -1264,6 +1299,60 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
+		}
+
+		/* EMPTY STATE */
+		.empty-state {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			pointer-events: none;
+		}
+
+		.empty-state-content {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 16px;
+		}
+
+		.empty-state-title {
+			font-size: 28px;
+			font-weight: 600;
+			color: var(--traek-empty-state-color, var(--traek-text-secondary, #888888));
+			letter-spacing: -0.5px;
+		}
+
+		.empty-state-subtitle {
+			font-size: 14px;
+			color: var(--traek-empty-state-color, var(--traek-text-secondary, #888888));
+			opacity: 0.7;
+		}
+
+		.empty-state-arrow {
+			margin-top: 8px;
+			color: var(--traek-empty-state-color, var(--traek-text-secondary, #888888));
+			opacity: 0.5;
+			animation: empty-state-bounce 2s ease-in-out infinite;
+		}
+
+		@keyframes empty-state-bounce {
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+			50% {
+				transform: translateY(8px);
+			}
+		}
+
+		/* Mobile touch target improvements */
+		@media (max-width: 768px) {
+			button {
+				min-width: 44px;
+				min-height: 44px;
+			}
 		}
 	}
 </style>

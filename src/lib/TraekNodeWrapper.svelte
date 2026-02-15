@@ -14,6 +14,7 @@
 		gridStep = 20,
 		nodeWidth = 350,
 		viewportResizeVersion = 0,
+		onRetry,
 		children
 	}: {
 		node: Node;
@@ -23,6 +24,7 @@
 		gridStep?: number;
 		nodeWidth?: number;
 		viewportResizeVersion?: number;
+		onRetry?: (nodeId: string) => void;
 		children: import('svelte').Snippet;
 	} = $props();
 
@@ -102,9 +104,9 @@
 <div
 	bind:this={wrapper}
 	data-node-id={node.id}
-	class="message-node-wrapper {node.role} {isActive ? 'active' : ''} {!isInView
-		? 'message-node-wrapper--placeholder'
-		: ''}"
+	class="message-node-wrapper {node.role} {isActive ? 'active' : ''} {node.status === 'error'
+		? 'error'
+		: ''} {!isInView ? 'message-node-wrapper--placeholder' : ''}"
 	style:left="{(node.metadata?.x ?? 0) * gridStep}px"
 	style:top="{(node.metadata?.y ?? 0) * gridStep}px"
 	style:width="{nodeWidth}px"
@@ -139,6 +141,31 @@
 		</span>
 		<span class="node-id">ID: {node.id.slice(0, 4)}</span>
 	</button>
+	{#if node.status === 'error'}
+		<div class="error-banner" role="alert">
+			<span class="error-banner-message">
+				{node.errorMessage || 'An error occurred'}
+			</span>
+			<div class="error-banner-actions">
+				{#if onRetry}
+					<button
+						type="button"
+						class="error-banner-btn error-banner-retry"
+						onclick={() => onRetry?.(node.id)}
+					>
+						Retry
+					</button>
+				{/if}
+				<button
+					type="button"
+					class="error-banner-btn error-banner-dismiss"
+					onclick={() => engine?.updateNode(node.id, { status: 'done', errorMessage: undefined })}
+				>
+					Dismiss
+				</button>
+			</div>
+		</div>
+	{/if}
 	{#if thoughtChild}
 		<div class="thought-inline">
 			<button
@@ -513,6 +540,83 @@
 			position: static;
 			left: auto;
 			top: auto;
+		}
+
+		/* Error state */
+		.message-node-wrapper.error {
+			border-color: var(--traek-error-border, #ff3e00);
+			box-shadow: 0 0 20px var(--traek-error-glow, rgba(255, 62, 0, 0.2));
+		}
+
+		.error-banner {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			padding: 8px 14px;
+			background: var(--traek-error-banner-bg, rgba(255, 62, 0, 0.1));
+			border-bottom: 1px solid var(--traek-error-border, rgba(255, 62, 0, 0.3));
+			font-size: 12px;
+			color: var(--traek-error-text, #ff6b4a);
+		}
+
+		.error-banner-message {
+			flex: 1;
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.error-banner-actions {
+			display: flex;
+			gap: 6px;
+			flex-shrink: 0;
+		}
+
+		.error-banner-btn {
+			padding: 3px 10px;
+			border-radius: 4px;
+			border: 1px solid;
+			font-size: 11px;
+			cursor: pointer;
+			font: inherit;
+			transition:
+				background 0.15s,
+				opacity 0.15s;
+		}
+
+		.error-banner-retry {
+			background: var(--traek-error-border, #ff3e00);
+			border-color: var(--traek-error-border, #ff3e00);
+			color: #fff;
+		}
+
+		.error-banner-retry:hover {
+			opacity: 0.85;
+		}
+
+		.error-banner-dismiss {
+			background: transparent;
+			border-color: var(--traek-error-text, #ff6b4a);
+			color: var(--traek-error-text, #ff6b4a);
+		}
+
+		.error-banner-dismiss:hover {
+			background: rgba(255, 62, 0, 0.1);
+		}
+
+		/* Mobile touch target improvements */
+		@media (max-width: 768px) {
+			.node-header {
+				padding: 14px 14px;
+				min-height: 44px;
+			}
+
+			.thought-pill {
+				padding: 10px 14px;
+				min-height: 44px;
+			}
 		}
 	}
 </style>

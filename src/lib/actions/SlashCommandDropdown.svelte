@@ -125,4 +125,12 @@
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
+
+	/* Mobile touch target improvements */
+	@media (max-width: 768px) {
+		.slash-item {
+			padding: 12px 10px;
+			min-height: 44px;
+		}
+	}
 </style>

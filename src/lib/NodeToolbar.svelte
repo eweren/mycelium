@@ -75,4 +75,13 @@
 	.traek-node-toolbar__icon {
 		font-size: 1.1em;
 	}
+
+	/* Mobile touch target improvements */
+	@media (max-width: 768px) {
+		.traek-node-toolbar__btn {
+			padding: 8px 12px;
+			min-height: 44px;
+			min-width: 44px;
+		}
+	}
 </style>
